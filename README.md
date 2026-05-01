@@ -1,8 +1,35 @@
-# Databricks vs Snowflake — A Hands-On Comparison
+# Databricks vs Snowflake — A Decision Framework, Backed by Code
 
-> **Cost target: ≤ $5 USD per full end-to-end run across both platforms.**
+> **TL;DR:** *If the complexity is in pipelines, features, models, agents, tracing, and lifecycle governance, lean Databricks. If the complexity is mostly governed SQL analytics over curated warehouse data, Snowflake may be the cleaner fit.*
 
-A side-by-side comparison of **Databricks** and **Snowflake**, built by running the same fraud-analytics workload end-to-end on both platforms. Same fictional fintech ("NorthWind Payments"), same synthetic data, same dbt models — only the engine differs. Cross-platform parity check asserts the gold tables match across both within 1e-4 tolerance.
+Most Databricks-vs-Snowflake content is one of two things: a service-mapping table that tells you nothing about *why* you'd pick one, or a vendor-flavored opinion you can't verify. This repo is neither. It's a **discovery framework** for choosing between the two — paired with **working code on both platforms** that lets you verify each claim by running it.
+
+```mermaid
+graph LR
+    Q["Where does the<br/>complexity live?"]
+    Q --> E["Engineering & operating<br/>data/AI systems"]
+    Q --> A["Governing & analyzing<br/>business data"]
+    E --> D["Databricks<br/><i>Lakehouse + ML lifecycle</i>"]
+    A --> S["Snowflake<br/><i>Warehouse + governed BI</i>"]
+
+    style Q fill:#fff3cd,stroke:#856404,color:#333
+    style E fill:#cce5ff,stroke:#004085,color:#333
+    style A fill:#cce5ff,stroke:#004085,color:#333
+    style D fill:#fff5f5,stroke:#c33,color:#333
+    style S fill:#f0f8ff,stroke:#369,color:#333
+```
+
+## Two Layers
+
+**[Decision framework](docs/decision-framework.md)** — start here. Seven discovery questions to ask any new workload, with the architectural *why* for each, and pointers to the code in this repo that demonstrates the trade-off being described.
+
+**[Architecture comparison](docs/architecture-comparison.md)** — the *what I built* version. Side-by-side reference architecture, decision tables, four "how do I think about X?" reasoning sections, stretch.
+
+The framework tells you *which* platform fits a given workload. The comparison doc shows you *what each platform's defaults push you toward* once you've picked one. Use them together.
+
+## How the Code Backs the Framework
+
+The same fraud-analytics workload is built end-to-end on both platforms. Fictional fintech ("NorthWind Payments"), synthetic data with 6 modes of deliberate dirt, same dbt models on both engines:
 
 ```mermaid
 graph LR
@@ -20,15 +47,9 @@ graph LR
     style E2 fill:#f0f8ff,stroke:#369,color:#333
 ```
 
-> The dbt transformation layer (silver + gold + snapshots + tests) is **byte-identical** across both platforms — only the profile target differs. That's the cross-engine fairness control: the parity check passing means any architectural difference described in the comparison doc is a real platform difference, not an artifact of how the SQL was written.
+The dbt transformation layer (silver + gold + snapshots + tests) is **byte-identical** across both platforms — only the profile target differs. A cross-platform parity check asserts the gold tables match within 1e-4 tolerance. That's the cross-engine fairness control: when the parity check passes, every architectural difference described in the framework is a *real* platform difference, not an artifact of how the SQL was written.
 
-## What This Comparison Argues
-
-Most Databricks-vs-Snowflake comparisons are surface-level service mappings ("Delta = Iceberg, Lakeview = Snowsight, Auto Loader = Snowpipe"). That tells you nothing about *why* you'd pick one over the other for a specific workload.
-
-This project compares architectural thinking by building. For each layer (ingest, transform, govern, serve), there's working code on both sides — and a written reasoning for which choice is load-bearing vs cosmetic.
-
-The full comparison doc is at [`docs/architecture-comparison.md`](docs/architecture-comparison.md).
+> **Cost target: ≤ $5 USD per full end-to-end run across both platforms.**
 
 ## Who This Is For
 
@@ -176,7 +197,8 @@ Without injected dirt, both platforms trivially handle clean data and there's no
 | Databricks side | Auto Loader → bronze; dbt silver/gold; UC masking; Lakeview dashboard | Complete |
 | Snowflake side | COPY INTO → bronze; dbt silver/gold; Horizon masking; Streamlit dashboard | Complete |
 | Cross-platform parity check | 4 gold-table assertions, 1e-4 tolerance | Complete (4/4 pass) |
-| Architecture comparison doc | [`docs/architecture-comparison.md`](docs/architecture-comparison.md) | Complete |
+| [Decision framework](docs/decision-framework.md) | 7 discovery questions, differentiation anchors, fit matrix | Complete |
+| [Architecture comparison](docs/architecture-comparison.md) | Reference architecture, decision tables, reasoning by question | Complete |
 | Parallel native variants | DLT (Databricks) + Dynamic Tables (Snowflake), bonus PySpark/Snowpark notebooks | Planned |
 
 ## Cost & Teardown

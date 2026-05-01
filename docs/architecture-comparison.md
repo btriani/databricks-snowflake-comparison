@@ -1,5 +1,7 @@
 # Databricks vs Snowflake — An Architecture Comparison
 
+> **Looking for the "how to choose between them" version?** See the companion **[Decision Framework](decision-framework.md)** — seven discovery questions for sizing up a new workload, with each answer linking back to evidence in this repo. This document is the *what I built and what I learned* version; the framework is the *forward-looking choose-for-your-workload* version.
+
 A first-person walkthrough of building the same fraud-analytics workload end-to-end on Databricks and Snowflake. Same fictional fintech ("NorthWind Payments"), same synthetic data, same dbt models — only the platform differs. The point is to compare honestly: where the two platforms converge, where they diverge, and which choices are load-bearing vs. cosmetic.
 
 ```mermaid
