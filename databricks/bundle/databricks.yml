@@ -1,0 +1,60 @@
+bundle:
+  name: northwind-payments-m2a
+
+workspace:
+  root_path: ~/.bundle/northwind-payments-m2a/${bundle.target}
+
+sync:
+  paths:
+    - ../notebooks
+
+variables:
+  catalog:
+    description: Unity Catalog name
+    default: northwind_payments
+  bronze_schema:
+    description: Bronze schema
+    default: bronze
+  landing_volume_path:
+    description: UC Volume path with the source parquet files
+    default: /Volumes/northwind_payments/bronze/landing
+  checkpoint_volume_path:
+    description: UC Volume path for Auto Loader checkpoints
+    default: /Volumes/northwind_payments/bronze/_checkpoints
+  warehouse_id:
+    description: SQL warehouse ID for the load_banks task
+    default: ""
+
+resources:
+  jobs:
+    bronze_ingest:
+      name: northwind-bronze-ingest-m2a
+      tags:
+        project: northwind-payments
+        milestone: m2a
+      tasks:
+        - task_key: load_banks
+          notebook_task:
+            notebook_path: ../notebooks/03_load_banks.sql
+            warehouse_id: ${var.warehouse_id}
+        - task_key: autoloader_bronze
+          depends_on:
+            - task_key: load_banks
+          notebook_task:
+            notebook_path: ../notebooks/02_autoloader_bronze.py
+            base_parameters:
+              catalog: ${var.catalog}
+              bronze_schema: ${var.bronze_schema}
+              landing: ${var.landing_volume_path}
+              checkpoints: ${var.checkpoint_volume_path}
+          environment_key: serverless_env
+      environments:
+        - environment_key: serverless_env
+          spec:
+            client: "1"
+
+targets:
+  dev:
+    workspace:
+      host: https://dbc-XXXXXXXX-XXXX.cloud.databricks.com  # Replace with your workspace URL — DAB auth fields don't support ${env.DATABRICKS_HOST} interpolation
+    default: true

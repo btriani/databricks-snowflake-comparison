@@ -1,0 +1,15 @@
+definition_version: 2
+entities:
+  northwind_fraud_overview:
+    type: streamlit
+    identifier:
+      name: northwind_fraud_overview
+      schema: APPS
+      database: NORTHWIND_PAYMENTS
+    title: NorthWind Fraud Overview
+    query_warehouse: NORTHWIND_WH
+    main_file: fraud_overview.py
+    pages_dir: ""
+    artifacts:
+      - fraud_overview.py
+      - environment.yml

@@ -1,0 +1,53 @@
+version: 2
+
+models:
+  - name: gold_fct_fraud_daily
+    description: Daily fraud aggregates by merchant category × customer state
+    columns:
+      - name: trans_date
+        data_tests: [not_null]
+      - name: merchant_category
+        data_tests: [not_null]
+      - name: customer_state
+        data_tests: [not_null]
+      - name: txn_count
+        data_tests:
+          - not_null
+      - name: fraud_rate
+        data_tests:
+          - not_null
+
+  - name: gold_dim_customer_risk
+    description: Per-customer rule-based risk score (0-100)
+    columns:
+      - name: customer_sk
+        data_tests: [unique, not_null]
+      - name: cc_num
+        data_tests: [unique, not_null]
+      - name: risk_score
+        data_tests:
+          - not_null
+
+  - name: gold_fct_merchant_exposure
+    description: Per-merchant fraud exposure aggregates
+    columns:
+      - name: merchant_sk
+        data_tests: [unique, not_null]
+      - name: merchant_name
+        data_tests: [unique, not_null]
+      - name: txn_count
+        data_tests: [not_null]
+      - name: total_amt
+        data_tests: [not_null]
+      - name: fraud_rate
+        data_tests: [not_null]
+
+  - name: gold_kpi_executive
+    description: One row per day; executive headline KPIs
+    columns:
+      - name: trans_date
+        data_tests: [unique, not_null]
+      - name: total_txn
+        data_tests: [not_null]
+      - name: fraud_rate
+        data_tests: [not_null]

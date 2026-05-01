@@ -1,0 +1,109 @@
+version: 2
+
+models:
+  - name: silver_banks
+    description: FFIEC bank reference dim, lightly cleansed (uppercased state, trimmed names)
+    data_tests:
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "length(state) = 2"
+    columns:
+      - name: rssd_id
+        description: FFIEC RSSD primary key
+        data_tests:
+          - unique
+          - not_null
+      - name: bank_name
+        data_tests: [not_null]
+      - name: state
+        data_tests:
+          - not_null
+
+  - name: silver_merchants
+    description: Conformed merchant dim with surrogate key
+    columns:
+      - name: merchant_sk
+        description: SHA-based surrogate key on merchant_name
+        data_tests:
+          - unique
+          - not_null
+      - name: merchant_name
+        data_tests:
+          - unique
+          - not_null
+      - name: category
+        data_tests:
+          - not_null
+          - accepted_values:
+              values:
+                - grocery_pos
+                - grocery_net
+                - gas_transport
+                - shopping_pos
+                - shopping_net
+                - entertainment
+                - food_dining
+                - health_fitness
+                - personal_care
+                - travel
+                - kids_pets
+                - home
+                - misc_pos
+                - misc_net
+
+  - name: silver_customers
+    description: Current-state customer dim. SCD2 history lives in customers_snapshot.
+    data_tests:
+      - dbt_utils.expression_is_true:
+          expression: "length(cc_num) = 16"
+    columns:
+      - name: customer_sk
+        data_tests:
+          - unique
+          - not_null
+      - name: cc_num
+        description: 16-digit credit-card primary key
+        data_tests:
+          - unique
+          - not_null
+      - name: state
+        data_tests: [not_null]
+
+  - name: silver_transactions
+    description: Cleansed transactions joined to customer/merchant SKs. Source for gold.
+    columns:
+      - name: trans_num
+        data_tests:
+          - unique
+          - not_null
+      - name: cc_num
+        data_tests:
+          - not_null
+          - relationships:
+              to: ref('silver_customers')
+              field: cc_num
+      - name: customer_sk
+        data_tests:
+          - not_null
+          - relationships:
+              to: ref('silver_customers')
+              field: customer_sk
+      - name: amt
+        data_tests:
+          - not_null
+      - name: is_fraud
+        data_tests:
+          - not_null
+          - accepted_values: { values: [0, 1] }
+      - name: source_schema_version
+        data_tests:
+          - accepted_values: { values: ['v1', 'v2'] }
+
+  - name: _quarantine_transactions_orphan_cc_num
+    description: Orphan rows from the M1 inject_bad_joins dirt mode
+    columns:
+      - name: trans_num
+        data_tests: [not_null]
+      - name: quarantine_reason
+        data_tests:
+          - accepted_values: { values: ['orphan_cc_num'] }

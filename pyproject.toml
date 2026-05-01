@@ -1,0 +1,47 @@
+[project]
+name = "northwind-payments-lakehouse"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.12"
+dependencies = [
+    "click>=8.1.8",
+    "faker>=40.15.0",
+    "pandas>=3.0.2",
+    "pyarrow>=24.0.0",
+    "requests>=2.32.0",
+]
+
+[dependency-groups]
+dev = [
+    "dbt-core>=1.11.8",
+    "dbt-databricks>=1.11.7",
+    "dbt-snowflake>=1.10.0",
+    "snowflake-connector-python>=3.16.0",
+    "pytest>=9.0.3",
+    "pyyaml>=6.0.2",
+    "responses>=0.26.0",
+]
+
+[project.scripts]
+npl-generate = "data_generation.cli:generate"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["data_generation"]
+
+[tool.pytest.ini_options]
+testpaths = ["data_generation/tests"]
+python_files = ["test_*.py"]
+addopts = "-ra -q"
+
+[tool.uv]
+# dbt-databricks -> databricks-sql-connector pins pandas<2.3|2.4, which conflicts with our
+# pandas>=3.0.2 data-generation dep.  Override so uv resolves with our version; the SQL
+# connector uses pandas only for result-set serialisation and is a dev-only tool here.
+override-dependencies = [
+    "pandas>=3.0.2",
+    "pyarrow>=18.0.0",
+]

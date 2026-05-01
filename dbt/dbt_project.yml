@@ -1,0 +1,32 @@
+name: northwind_payments
+version: '0.1.0'
+config-version: 2
+
+profile: northwind_payments
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+clean-targets:
+  - target
+  - dbt_packages
+
+vars:
+  # Source database resolves from the active target (databricks 'catalog' or snowflake 'database').
+  # No need for an env-var override — dbt sources use `database: "{{ target.database }}"`.
+  database: "{{ target.database }}"
+
+models:
+  northwind_payments:
+    silver:
+      +materialized: table
+      +schema: silver
+      +tags: ["silver", "northwind-payments"]
+    gold:
+      +materialized: table
+      +schema: gold
+      +tags: ["gold", "northwind-payments"]

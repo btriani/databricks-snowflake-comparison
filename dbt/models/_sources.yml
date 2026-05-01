@@ -1,0 +1,32 @@
+version: 2
+
+sources:
+  - name: bronze
+    database: "{{ target.database }}"
+    schema: bronze
+    description: Bronze landing tables produced by Auto Loader (M2a)
+    tables:
+      - name: transactions
+        description: Raw transactions, v1+v2 schemas unioned via Auto Loader schema evolution
+        columns:
+          - name: cc_num
+            description: 16-digit credit card number, primary join key to customers
+          - name: amt
+            description: Transaction amount (v1 schema). STRING per M1 findings (pyarrow forced uniform type).
+          - name: transaction_amount
+            description: Transaction amount (v2 schema). NULL when row is from a v1 file.
+          - name: trans_num
+            description: 32-char hex transaction ID. Should be unique but bronze contains ~1% duplicates.
+          - name: is_fraud
+            description: 0/1 fraud label. ~1% of rows are fraud after the 1% noise applied in M1.
+          - name: _ingest_timestamp
+          - name: _source_file
+      - name: customers
+        columns:
+          - name: cc_num
+      - name: merchants
+        columns:
+          - name: merchant
+      - name: banks
+        columns:
+          - name: rssd_id

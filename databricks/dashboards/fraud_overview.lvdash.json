@@ -1,0 +1,248 @@
+{
+  "datasets": [
+    {
+      "name": "kpi_today",
+      "displayName": "Today's KPIs",
+      "queryLines": [
+        "SELECT trans_date, total_txn, total_amt_processed, fraud_txn, fraud_amt_processed, fraud_rate FROM northwind_payments.gold.kpi_executive ORDER BY trans_date DESC LIMIT 1"
+      ]
+    },
+    {
+      "name": "fraud_rate_timeseries",
+      "displayName": "Daily Fraud Rate",
+      "queryLines": [
+        "SELECT trans_date, fraud_rate FROM northwind_payments.gold.kpi_executive ORDER BY trans_date"
+      ]
+    },
+    {
+      "name": "fraud_by_category_state",
+      "displayName": "Fraud Rate by Category x State",
+      "queryLines": [
+        "SELECT merchant_category, customer_state, AVG(fraud_rate) AS fraud_rate, SUM(txn_count) AS txn_count FROM northwind_payments.gold.fct_fraud_daily GROUP BY merchant_category, customer_state HAVING SUM(txn_count) >= 10 ORDER BY fraud_rate DESC"
+      ]
+    },
+    {
+      "name": "top_risk_merchants",
+      "displayName": "Top Merchants by Fraud Exposure",
+      "queryLines": [
+        "SELECT merchant_name, category, total_amt, fraud_amt, fraud_rate FROM northwind_payments.gold.fct_merchant_exposure ORDER BY fraud_amt DESC LIMIT 10"
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "name": "main",
+      "displayName": "NorthWind Fraud Overview",
+      "layout": [
+        {
+          "widget": {
+            "name": "kpi_counter",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "kpi_today",
+                  "fields": [
+                    {"name": "fraud_rate", "expression": "`fraud_rate`"}
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "fraud_rate",
+                  "displayName": "fraud_rate",
+                  "format": {"type": "number-percent", "decimalPlaces": {"type": "exact", "places": 2}},
+                  "rowNumber": 1,
+                  "style": {"rules": []}
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Today's Fraud Rate",
+                "showDescription": false
+              }
+            }
+          },
+          "position": {"x": 0, "y": 0, "width": 2, "height": 4}
+        },
+        {
+          "widget": {
+            "name": "kpi_volume",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "kpi_today",
+                  "fields": [
+                    {"name": "total_amt_processed", "expression": "`total_amt_processed`"}
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "total_amt_processed",
+                  "displayName": "total_amt_processed",
+                  "format": {"type": "number-currency", "currencyCode": "USD", "abbreviation": "compact", "decimalPlaces": {"type": "exact", "places": 1}},
+                  "rowNumber": 1,
+                  "style": {"rules": []}
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Today's Volume Processed",
+                "showDescription": false
+              }
+            }
+          },
+          "position": {"x": 2, "y": 0, "width": 2, "height": 4}
+        },
+        {
+          "widget": {
+            "name": "fraud_rate_line",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "fraud_rate_timeseries",
+                  "fields": [
+                    {"name": "trans_date", "expression": "`trans_date`"},
+                    {"name": "fraud_rate", "expression": "`fraud_rate`"}
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "trans_date",
+                  "displayName": "Date",
+                  "scale": {"type": "temporal"},
+                  "axis": {"title": "Date"}
+                },
+                "y": {
+                  "fieldName": "fraud_rate",
+                  "displayName": "Fraud Rate",
+                  "scale": {"type": "quantitative"},
+                  "axis": {"title": "Fraud Rate"}
+                },
+                "label": {"show": false}
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Daily Fraud Rate Trend",
+                "showDescription": false
+              },
+              "mark": {
+                "colors": ["#FF3621", "#077A9D", "#FFAB00", "#00A972"]
+              }
+            }
+          },
+          "position": {"x": 4, "y": 0, "width": 2, "height": 4}
+        },
+        {
+          "widget": {
+            "name": "category_state_table",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "fraud_by_category_state",
+                  "fields": [
+                    {"name": "merchant_category", "expression": "`merchant_category`"},
+                    {"name": "customer_state", "expression": "`customer_state`"},
+                    {"name": "fraud_rate", "expression": "`fraud_rate`"},
+                    {"name": "txn_count", "expression": "`txn_count`"}
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 1,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {"fieldName": "merchant_category", "title": "Category", "type": "string", "displayAs": "string", "displayName": "merchant_category", "order": 0, "visible": true, "alignContent": "left", "allowHTML": false, "allowSearch": true, "booleanValues": ["false","true"], "highlightLinks": false, "imageHeight": "", "imageTitleTemplate": "{{ @ }}", "imageUrlTemplate": "{{ @ }}", "imageWidth": "", "linkOpenInNewTab": true, "linkTextTemplate": "{{ @ }}", "linkTitleTemplate": "{{ @ }}", "linkUrlTemplate": "{{ @ }}", "preserveWhitespace": false, "useMonospaceFont": false},
+                  {"fieldName": "customer_state", "title": "State", "type": "string", "displayAs": "string", "displayName": "customer_state", "order": 1, "visible": true, "alignContent": "left", "allowHTML": false, "allowSearch": true, "booleanValues": ["false","true"], "highlightLinks": false, "imageHeight": "", "imageTitleTemplate": "{{ @ }}", "imageUrlTemplate": "{{ @ }}", "imageWidth": "", "linkOpenInNewTab": true, "linkTextTemplate": "{{ @ }}", "linkTitleTemplate": "{{ @ }}", "linkUrlTemplate": "{{ @ }}", "preserveWhitespace": false, "useMonospaceFont": false},
+                  {"fieldName": "fraud_rate", "title": "Fraud Rate", "type": "decimal", "displayAs": "number", "displayName": "fraud_rate", "numberFormat": "0.00%", "order": 2, "visible": true, "alignContent": "right", "allowHTML": false, "allowSearch": false, "booleanValues": ["false","true"], "highlightLinks": false, "imageHeight": "", "imageTitleTemplate": "{{ @ }}", "imageUrlTemplate": "{{ @ }}", "imageWidth": "", "linkOpenInNewTab": true, "linkTextTemplate": "{{ @ }}", "linkTitleTemplate": "{{ @ }}", "linkUrlTemplate": "{{ @ }}", "preserveWhitespace": false, "useMonospaceFont": false},
+                  {"fieldName": "txn_count", "title": "Transactions", "type": "integer", "displayAs": "number", "displayName": "txn_count", "numberFormat": "0,0", "order": 3, "visible": true, "alignContent": "right", "allowHTML": false, "allowSearch": false, "booleanValues": ["false","true"], "highlightLinks": false, "imageHeight": "", "imageTitleTemplate": "{{ @ }}", "imageUrlTemplate": "{{ @ }}", "imageWidth": "", "linkOpenInNewTab": true, "linkTextTemplate": "{{ @ }}", "linkTitleTemplate": "{{ @ }}", "linkUrlTemplate": "{{ @ }}", "preserveWhitespace": false, "useMonospaceFont": false}
+                ]
+              },
+              "invisibleColumns": [],
+              "allowHTMLByDefault": false,
+              "itemsPerPage": 25,
+              "paginationSize": "default",
+              "condensed": true,
+              "withRowNumber": false,
+              "frame": {
+                "showTitle": true,
+                "title": "Fraud Rate by Category x State",
+                "showDescription": false
+              }
+            }
+          },
+          "position": {"x": 0, "y": 4, "width": 3, "height": 6}
+        },
+        {
+          "widget": {
+            "name": "top_merchants_table",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "top_risk_merchants",
+                  "fields": [
+                    {"name": "merchant_name", "expression": "`merchant_name`"},
+                    {"name": "category", "expression": "`category`"},
+                    {"name": "total_amt", "expression": "`total_amt`"},
+                    {"name": "fraud_amt", "expression": "`fraud_amt`"},
+                    {"name": "fraud_rate", "expression": "`fraud_rate`"}
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 1,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {"fieldName": "merchant_name", "title": "Merchant", "type": "string", "displayAs": "string", "displayName": "merchant_name", "order": 0, "visible": true, "alignContent": "left", "allowHTML": false, "allowSearch": true, "booleanValues": ["false","true"], "highlightLinks": false, "imageHeight": "", "imageTitleTemplate": "{{ @ }}", "imageUrlTemplate": "{{ @ }}", "imageWidth": "", "linkOpenInNewTab": true, "linkTextTemplate": "{{ @ }}", "linkTitleTemplate": "{{ @ }}", "linkUrlTemplate": "{{ @ }}", "preserveWhitespace": false, "useMonospaceFont": false},
+                  {"fieldName": "category", "title": "Category", "type": "string", "displayAs": "string", "displayName": "category", "order": 1, "visible": true, "alignContent": "left", "allowHTML": false, "allowSearch": true, "booleanValues": ["false","true"], "highlightLinks": false, "imageHeight": "", "imageTitleTemplate": "{{ @ }}", "imageUrlTemplate": "{{ @ }}", "imageWidth": "", "linkOpenInNewTab": true, "linkTextTemplate": "{{ @ }}", "linkTitleTemplate": "{{ @ }}", "linkUrlTemplate": "{{ @ }}", "preserveWhitespace": false, "useMonospaceFont": false},
+                  {"fieldName": "total_amt", "title": "Total $", "type": "decimal", "displayAs": "number", "displayName": "total_amt", "numberFormat": "$0,0", "order": 2, "visible": true, "alignContent": "right", "allowHTML": false, "allowSearch": false, "booleanValues": ["false","true"], "highlightLinks": false, "imageHeight": "", "imageTitleTemplate": "{{ @ }}", "imageUrlTemplate": "{{ @ }}", "imageWidth": "", "linkOpenInNewTab": true, "linkTextTemplate": "{{ @ }}", "linkTitleTemplate": "{{ @ }}", "linkUrlTemplate": "{{ @ }}", "preserveWhitespace": false, "useMonospaceFont": false},
+                  {"fieldName": "fraud_amt", "title": "Fraud $", "type": "decimal", "displayAs": "number", "displayName": "fraud_amt", "numberFormat": "$0,0", "order": 3, "visible": true, "alignContent": "right", "allowHTML": false, "allowSearch": false, "booleanValues": ["false","true"], "highlightLinks": false, "imageHeight": "", "imageTitleTemplate": "{{ @ }}", "imageUrlTemplate": "{{ @ }}", "imageWidth": "", "linkOpenInNewTab": true, "linkTextTemplate": "{{ @ }}", "linkTitleTemplate": "{{ @ }}", "linkUrlTemplate": "{{ @ }}", "preserveWhitespace": false, "useMonospaceFont": false},
+                  {"fieldName": "fraud_rate", "title": "Fraud Rate", "type": "decimal", "displayAs": "number", "displayName": "fraud_rate", "numberFormat": "0.00%", "order": 4, "visible": true, "alignContent": "right", "allowHTML": false, "allowSearch": false, "booleanValues": ["false","true"], "highlightLinks": false, "imageHeight": "", "imageTitleTemplate": "{{ @ }}", "imageUrlTemplate": "{{ @ }}", "imageWidth": "", "linkOpenInNewTab": true, "linkTextTemplate": "{{ @ }}", "linkTitleTemplate": "{{ @ }}", "linkUrlTemplate": "{{ @ }}", "preserveWhitespace": false, "useMonospaceFont": false}
+                ]
+              },
+              "invisibleColumns": [],
+              "allowHTMLByDefault": false,
+              "itemsPerPage": 10,
+              "paginationSize": "default",
+              "condensed": true,
+              "withRowNumber": false,
+              "frame": {
+                "showTitle": true,
+                "title": "Top 10 Merchants by Fraud Exposure",
+                "showDescription": false
+              }
+            }
+          },
+          "position": {"x": 3, "y": 4, "width": 3, "height": 6}
+        }
+      ]
+    }
+  ]
+}

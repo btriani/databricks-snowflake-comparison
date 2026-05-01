@@ -1,0 +1,18 @@
+# This file is COMMITTED as documentation. The real profile is rendered to
+# ~/.dbt/profiles.yml by scripts/render_dbt_profile.sh, which reads .env.
+#
+# To run dbt manually without going through Make, set DBT_PROFILES_DIR:
+#   export DBT_PROFILES_DIR=$(pwd)/dbt/profiles
+# and copy this file to dbt/profiles/profiles.yml with real values.
+
+northwind_payments:
+  target: dev
+  outputs:
+    dev:
+      type: databricks
+      catalog: northwind_payments
+      schema: silver               # default schema; per-folder schema overrides via dbt_project.yml
+      host: dbc-XXXX.cloud.databricks.com    # WITHOUT https:// prefix
+      http_path: /sql/1.0/warehouses/<warehouse-id>    # auto-resolve via `databricks warehouses list`
+      token: dapi...               # from .env
+      threads: 4
